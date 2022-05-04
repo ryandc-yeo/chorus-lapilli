@@ -56,6 +56,7 @@ class Game extends React.Component {
       xIsNext: true,
       stepNumber: 0,
       isReplace: false,
+      replaceThisLine: [],
     };
   }
 
@@ -99,6 +100,7 @@ class Game extends React.Component {
             }]),
             stepNumber: history.length,
             isReplace: true,
+            replaceThisLine: lineToReplace(i),
           });
         } else if (squares[i] === 'O' && !this.state.xIsNext) {
           squares[i] = null;
@@ -108,22 +110,25 @@ class Game extends React.Component {
             }]),
             stepNumber: history.length,
             isReplace: true,
+            replaceThisLine: lineToReplace(i),
           });
         }
       } // insert replacement function
       else if (this.state.isReplace) {
         // insert X or O in an empty spot
         if (squares[i] === null) {
-          squares[i] = this.state.xIsNext ? 'X' : 'O';
+          if (this.state.replaceThisLine.includes(i)) {
+            squares[i] = this.state.xIsNext ? 'X' : 'O';
 
-          this.setState({
-            history: history.concat([{
-              squares: squares,
-            }]),
-            stepNumber: history.length,
-            xIsNext: !this.state.xIsNext,
-            isReplace: false,
-          });
+            this.setState({
+              history: history.concat([{
+                squares: squares,
+              }]),
+              stepNumber: history.length,
+              xIsNext: !this.state.xIsNext,
+              isReplace: false,
+            });
+          }
         }
       }
     }
@@ -181,8 +186,19 @@ class Game extends React.Component {
   }
 }
 
-function replace() {
-
+function lineToReplace(i) {
+  const lines = [
+    [1, 3, 4],
+    [0, 2, 3, 4, 5],
+    [1, 4, 5],
+    [0, 1, 4, 6, 7],
+    [0, 1, 2, 3, 5, 6, 7, 8],
+    [1, 2, 4, 7, 8],
+    [3, 4, 7],
+    [3, 4, 5, 6, 8],
+    [4, 5, 7]
+  ];
+  return lines[i];
 }
 
 function calculateWinner(squares) {
