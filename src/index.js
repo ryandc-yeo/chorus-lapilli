@@ -90,27 +90,41 @@ class Game extends React.Component {
 
       // delete selected node, next step should be to replace the node in a new position
       if (squares[i] !== null && !this.state.isReplace) {
-        squares[i] = null;
-
-        this.setState({
-          history: history.concat([{
-            squares: squares,
-          }]),
-          stepNumber: history.length,
-          isReplace: true,
-        });
+        // delete X or O at the appropriate time
+        if (squares[i] === 'X' && this.state.xIsNext) {
+          squares[i] = null;
+          this.setState({
+            history: history.concat([{
+              squares: squares,
+            }]),
+            stepNumber: history.length,
+            isReplace: true,
+          });
+        } else if (squares[i] === 'O' && !this.state.xIsNext) {
+          squares[i] = null;
+          this.setState({
+            history: history.concat([{
+              squares: squares,
+            }]),
+            stepNumber: history.length,
+            isReplace: true,
+          });
+        }
       } // insert replacement function
       else if (this.state.isReplace) {
-        squares[i] = this.state.xIsNext ? 'X' : 'O';
+        // insert X or O in an empty spot
+        if (squares[i] === null) {
+          squares[i] = this.state.xIsNext ? 'X' : 'O';
 
-        this.setState({
-          history: history.concat([{
-            squares: squares,
-          }]),
-          stepNumber: history.length,
-          xIsNext: !this.state.xIsNext,
-          isReplace: false,
-        });
+          this.setState({
+            history: history.concat([{
+              squares: squares,
+            }]),
+            stepNumber: history.length,
+            xIsNext: !this.state.xIsNext,
+            isReplace: false,
+          });
+        }
       }
     }
   } 
