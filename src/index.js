@@ -57,6 +57,10 @@ class Game extends React.Component {
       stepNumber: 0,
       isReplace: false,
       replaceThisLine: [],
+      centerPiece: null,
+      counter: 0,
+      illegal: false,
+      previous: -1,
     };
   }
 
@@ -72,6 +76,12 @@ class Game extends React.Component {
       }
 
       squares[i] = this.state.xIsNext ? 'X' : 'O';
+
+      if (i === 4) {
+        this.setState({
+          centerPiece: this.state.xIsNext ? 'X' : 'O',
+        });
+      }
 
       this.setState({
         history: history.concat([{
@@ -93,7 +103,8 @@ class Game extends React.Component {
       if (squares[i] !== null && !this.state.isReplace) {
         // delete X or O at the appropriate time
         if (squares[i] === 'X' && this.state.xIsNext) {
-          squares[i] = null;
+            squares[i] = null;
+          
           this.setState({
             history: history.concat([{
               squares: squares,
@@ -101,7 +112,14 @@ class Game extends React.Component {
             stepNumber: history.length,
             isReplace: true,
             replaceThisLine: lineToReplace(i),
+            previous: i,
+            illegal: false,
           });
+          if (i === 4) {
+            this.setState({
+              centerPiece: null,
+            });
+          }
         } else if (squares[i] === 'O' && !this.state.xIsNext) {
           squares[i] = null;
           this.setState({
@@ -111,7 +129,14 @@ class Game extends React.Component {
             stepNumber: history.length,
             isReplace: true,
             replaceThisLine: lineToReplace(i),
+            previous: i,
+            illegal: false,
           });
+          if (i === 4) {
+            this.setState({
+              centerPiece: null,
+            });
+          }
         }
       } // insert replacement function
       else if (this.state.isReplace) {
@@ -128,6 +153,35 @@ class Game extends React.Component {
               xIsNext: !this.state.xIsNext,
               isReplace: false,
             });
+
+            let count = this.state.counter;
+            if (!calculateWinner(current.squares)) {
+              setTimeout(() => {}, 5000);
+              if ((squares[4] === (this.state.xIsNext ? 'X' : 'O'))) {
+                if (count >= 1 && !calculateWinner(squares)) {
+                  squares[i] = null;
+                  squares[this.state.previous] = this.state.xIsNext ? 'X' : 'O';
+                  this.setState({
+                    xIsNext: this.state.xIsNext,
+                    illegal: true,
+                  })
+                }
+                count++;
+              } else if (squares[4] !== null) {
+                count++;
+              } else if (squares[4] === null) {
+                count = 0;
+              }
+              this.setState({
+                counter: count,
+              });
+            }
+
+            if (i === 4) {
+              this.setState({
+                centerPiece: this.state.xIsNext ? 'X' : 'O',
+              });
+            }
           }
         }
       }
@@ -159,13 +213,20 @@ class Game extends React.Component {
         );
     });
 
-    let status, mode = '';
+    let status, mode = '', centerStatus;
     if (winner) {
       status = 'Winner: ' + winner;
     } else {
       status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
       if (this.state.stepNumber >= 6) {
         mode = 'CHORUS-LAPILLI';
+        if (this.state.illegal) {
+          centerStatus = 'ILLEGAL MOVE!'; 
+        } else if (this.state.centerPiece !== null) {
+          centerStatus = 'Player ' + this.state.centerPiece + ': move your piece is in the center!';
+        } else {
+          centerStatus = '';
+        }
       }
     }
 
@@ -178,7 +239,7 @@ class Game extends React.Component {
           />
         </div>
         <div className="game-info">
-          <div>{status}<br />{mode}</div>
+          <div>{status}<br />{mode}<br />{centerStatus}</div>
           <ol>{moves}</ol>
         </div>
       </div>
